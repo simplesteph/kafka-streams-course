@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--this file is not important for your Kafka streams learning-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.github.simplesteph.udemy.kafka.streams</groupId>
+    <artifactId>kafka-streams-course-parent-project</artifactId>
+    <version>0.11</version>
+
+
+    <packaging>pom</packaging>
+
+    <modules>
+        <module>bank-balance-exactly-once</module>
+        <module>favourite-colour-java</module>
+        <module>streams-starter-project</module>
+        <module>user-event-enricher</module>
+        <module>word-count</module>
+    </modules>
+
+</project>

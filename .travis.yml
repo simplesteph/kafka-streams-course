@@ -1,0 +1,10 @@
+# this file is only used for GitHub
+# it is not related to your Kafka Streams learning
+
+language: java
+
+script:
+# test the java components
+- mvn clean verify
+# test the scala components
+- cd favourite-colour-scala && sbt test
