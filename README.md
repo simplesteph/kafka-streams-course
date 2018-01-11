@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/simplesteph/kafka-streams-course.svg?branch=master)](https://travis-ci.org/simplesteph/kafka-streams-course)
+
 # Learning
 
 This is a companion repository for my [**Kafka Streams course on Udemy**](https://www.udemy.com/kafka-streams/?couponCode=GITHUB)
