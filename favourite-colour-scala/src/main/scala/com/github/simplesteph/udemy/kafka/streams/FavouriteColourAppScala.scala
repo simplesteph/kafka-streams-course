@@ -5,8 +5,8 @@ import java.util.Properties
 
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.common.serialization.Serdes
-import org.apache.kafka.streams.kstream.{KStream, KStreamBuilder, KTable}
-import org.apache.kafka.streams.{KafkaStreams, KeyValue, StreamsConfig}
+import org.apache.kafka.streams.kstream.{KStream, KTable}
+import org.apache.kafka.streams.{KafkaStreams, KeyValue, StreamsBuilder, StreamsConfig}
 
 object FavouriteColourAppScala {
   def main(args: Array[String]): Unit = {
@@ -21,7 +21,7 @@ object FavouriteColourAppScala {
     // we disable the cache to demonstrate all the "steps" involved in the transformation - not recommended in prod
     config.put(StreamsConfig.CACHE_MAX_BYTES_BUFFERING_CONFIG, "0")
 
-    val builder: KStreamBuilder = new KStreamBuilder
+    val builder: StreamsBuilder = new StreamsBuilder
 
     // Step 1: We create the topic of users keys to colours
     val textLines: KStream[String, String] = builder.stream[String, String]("favourite-colour-input")
@@ -51,7 +51,7 @@ object FavouriteColourAppScala {
     // 6 - we output the results to a Kafka Topic - don't forget the serializers
     favouriteColours.to(Serdes.String, Serdes.Long, "favourite-colour-output-scala")
 
-    val streams: KafkaStreams = new KafkaStreams(builder, config)
+    val streams: KafkaStreams = new KafkaStreams(builder.build(), config)
     streams.cleanUp()
     streams.start()
 
