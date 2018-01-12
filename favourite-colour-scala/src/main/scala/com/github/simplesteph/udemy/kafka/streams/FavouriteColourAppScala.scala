@@ -5,7 +5,9 @@ import java.util.Properties
 
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.common.serialization.Serdes
-import org.apache.kafka.streams.kstream.{KStream, KTable}
+import org.apache.kafka.common.utils.Bytes
+import org.apache.kafka.streams.kstream.{KStream, KTable, Materialized, Produced}
+import org.apache.kafka.streams.state.KeyValueStore
 import org.apache.kafka.streams.{KafkaStreams, KeyValue, StreamsBuilder, StreamsConfig}
 
 object FavouriteColourAppScala {
@@ -45,11 +47,11 @@ object FavouriteColourAppScala {
     // step 3 - we count the occurences of colours
     val favouriteColours: KTable[String, lang.Long] = usersAndColoursTable
       // 5 - we group by colour within the KTable
-      .groupBy((user: String, colour: String) => new KeyValue[String, String](colour, colour))
-      .count("CountsByColours")
+      .groupBy[String, String]((user: String, colour: String) => new KeyValue[String, String](colour, colour))
+      .count(Materialized.as[String, lang.Long, KeyValueStore[Bytes, Array[Byte]]]("CountsByColours"))
 
     // 6 - we output the results to a Kafka Topic - don't forget the serializers
-    favouriteColours.to(Serdes.String, Serdes.Long, "favourite-colour-output-scala")
+    favouriteColours.toStream.to("favourite-colour-output-scala", Produced.`with`(Serdes.String, Serdes.Long))
 
     val streams: KafkaStreams = new KafkaStreams(builder.build(), config)
     streams.cleanUp()
