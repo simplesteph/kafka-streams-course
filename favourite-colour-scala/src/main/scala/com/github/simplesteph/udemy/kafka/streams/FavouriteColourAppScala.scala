@@ -54,7 +54,9 @@ object FavouriteColourAppScala {
         (user: String, colour: String) => new KeyValue[String, String](colour, colour),
         Serialized.`with`(stringSerde, stringSerde)
       )
-      .count(Materialized.as[String, lang.Long, KeyValueStore[Bytes, Array[Byte]]]("CountsByColours"))
+      .count(Materialized.as[String, lang.Long, KeyValueStore[Bytes, Array[Byte]]]("CountsByColours")
+        .withKeySerde(stringSerde)
+        .withValueSerde(longSerde))
 
     // 6 - we output the results to a Kafka Topic - don't forget the serializers
     favouriteColours.toStream.to("favourite-colour-output-scala", Produced.`with`(stringSerde, longSerde))
