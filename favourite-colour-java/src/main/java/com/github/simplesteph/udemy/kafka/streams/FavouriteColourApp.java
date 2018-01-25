@@ -4,7 +4,9 @@ import java.util.Properties;
 import java.util.Arrays;
 
 import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serdes;
+import org.apache.kafka.common.utils.Bytes;
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.StreamsBuilder;
@@ -13,6 +15,7 @@ import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.KTable;
 import org.apache.kafka.streams.kstream.Materialized;
 import org.apache.kafka.streams.kstream.Produced;
+import org.apache.kafka.streams.state.KeyValueStore;
 
 public class FavouriteColourApp {
 
@@ -43,6 +46,9 @@ public class FavouriteColourApp {
 
         usersAndColours.to("user-keys-and-colours");
 
+        Serde<String> stringSerde = Serdes.String();
+        Serde<Long> longSerde = Serdes.Long();
+
         // step 2 - we read that topic as a KTable so that updates are read correctly
         KTable<String, String> usersAndColoursTable = builder.table("user-keys-and-colours");
 
@@ -50,10 +56,12 @@ public class FavouriteColourApp {
         KTable<String, Long> favouriteColours = usersAndColoursTable
                 // 5 - we group by colour within the KTable
                 .groupBy((user, colour) -> new KeyValue<>(colour, colour))
-                .count(Materialized.as("CountsByColours"));
+                .count(Materialized.<String, Long, KeyValueStore<Bytes, byte[]>>as("CountsByColours")
+                        .withKeySerde(stringSerde)
+                        .withValueSerde(longSerde));
 
         // 6 - we output the results to a Kafka Topic - don't forget the serializers
-        favouriteColours.toStream().to("favourite-colour-output",Produced.with(Serdes.String(),Serdes.Long()));
+        favouriteColours.toStream().to("favourite-colour-output", Produced.with(Serdes.String(),Serdes.Long()));
 
         KafkaStreams streams = new KafkaStreams(builder.build(), config);
         // only do this in dev - not in prod

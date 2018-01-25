@@ -8,17 +8,16 @@ import org.apache.kafka.common.serialization.Deserializer;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.common.serialization.Serializer;
+import org.apache.kafka.common.utils.Bytes;
 import org.apache.kafka.connect.json.JsonDeserializer;
 import org.apache.kafka.connect.json.JsonSerializer;
 import org.apache.kafka.streams.Consumed;
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.StreamsConfig;
-import org.apache.kafka.streams.kstream.KStream;
-import org.apache.kafka.streams.kstream.KTable;
-import org.apache.kafka.streams.kstream.Materialized;
-import org.apache.kafka.streams.kstream.Serialized;
+import org.apache.kafka.streams.kstream.*;
 import org.apache.kafka.streams.processor.ThreadMetadata;
+import org.apache.kafka.streams.state.KeyValueStore;
 
 import java.time.Instant;
 import java.util.Properties;
@@ -45,9 +44,9 @@ public class BankBalanceExactlyOnceApp {
         final Serde<JsonNode> jsonSerde = Serdes.serdeFrom(jsonSerializer, jsonDeserializer);
         
         StreamsBuilder builder = new StreamsBuilder();
-        
-        KStream<String, JsonNode> bankTransactions = builder.stream("bank-transactions");
-        
+
+        KStream<String, JsonNode> bankTransactions = builder.stream("bank-transactions",
+                Consumed.with(Serdes.String(), jsonSerde));
         
 
         // create the initial json object for balances
@@ -61,10 +60,12 @@ public class BankBalanceExactlyOnceApp {
                 .aggregate(
                         () -> initialBalance,
                         (key, transaction, balance) -> newBalance(transaction, balance),
-                        Materialized.as("bank-balance-agg")
+                        Materialized.<String, JsonNode, KeyValueStore<Bytes, byte[]>>as("bank-balance-agg")
+                                .withKeySerde(Serdes.String())
+                                .withValueSerde(jsonSerde)
                 );
 
-        bankBalance.toStream().to("bank-balance-exactly-once");
+        bankBalance.toStream().to("bank-balance-exactly-once", Produced.with(Serdes.String(), jsonSerde));
 
         KafkaStreams streams = new KafkaStreams(builder.build(), config);
         streams.cleanUp();
