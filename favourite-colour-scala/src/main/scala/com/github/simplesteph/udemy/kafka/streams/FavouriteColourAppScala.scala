@@ -34,7 +34,9 @@ object FavouriteColourAppScala {
       // 2 - we select a key that will be the user id (lowercase for safety)
       .selectKey[String]((key: String, value: String) => value.split(",")(0).toLowerCase)
       // 3 - we get the colour from the value (lowercase for safety)
-      .mapValues[String]((value: String) => value.split(",")(1).toLowerCase)
+      .mapValues[String](new ValueMapper[String, String] {
+        override def apply(value: String): String =  { value.split(",")(1).toLowerCase }
+      })
       // 4 - we filter undesired colours (could be a data sanitization step)
       .filter((user: String, colour: String) => List("green", "blue", "red").contains(colour))
 
