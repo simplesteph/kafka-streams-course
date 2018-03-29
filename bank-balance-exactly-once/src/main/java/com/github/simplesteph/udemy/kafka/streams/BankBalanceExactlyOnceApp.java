@@ -16,12 +16,10 @@ import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.StreamsConfig;
 import org.apache.kafka.streams.kstream.*;
-import org.apache.kafka.streams.processor.ThreadMetadata;
 import org.apache.kafka.streams.state.KeyValueStore;
 
 import java.time.Instant;
 import java.util.Properties;
-import java.util.Set;
 
 public class BankBalanceExactlyOnceApp {
 
