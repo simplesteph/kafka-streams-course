@@ -18,12 +18,12 @@ public class BankTransactionsProducerTests {
         String key = record.key();
         String value = record.value();
 
-        assertEquals(key, "john");
+        assertEquals("john", key);
 
         ObjectMapper mapper = new ObjectMapper();
         try {
             JsonNode node = mapper.readTree(value);
-            assertEquals(node.get("name").asText(), "john");
+            assertEquals("john", node.get("name").asText());
             assertTrue("Amount should be less than 100", node.get("amount").asInt() < 100);
         } catch (IOException e) {
             e.printStackTrace();
