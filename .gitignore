@@ -2,3 +2,9 @@ target/
 .idea/
 *.iml
 .DS_STORE
+/.classpath
+*/.classpath
+/.project
+*/.project
+*/.settings
+bin/

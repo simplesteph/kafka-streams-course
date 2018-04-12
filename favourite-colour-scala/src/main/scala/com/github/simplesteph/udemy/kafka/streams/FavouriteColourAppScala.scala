@@ -4,9 +4,11 @@ import java.lang
 import java.util.Properties
 
 import org.apache.kafka.clients.consumer.ConsumerConfig
-import org.apache.kafka.common.serialization.Serdes
-import org.apache.kafka.streams.kstream.{KStream, KStreamBuilder, KTable}
-import org.apache.kafka.streams.{KafkaStreams, KeyValue, StreamsConfig}
+import org.apache.kafka.common.serialization.{Serde, Serdes}
+import org.apache.kafka.common.utils.Bytes
+import org.apache.kafka.streams.kstream._
+import org.apache.kafka.streams.state.KeyValueStore
+import org.apache.kafka.streams.{KafkaStreams, KeyValue, StreamsBuilder, StreamsConfig}
 
 object FavouriteColourAppScala {
   def main(args: Array[String]): Unit = {
@@ -21,7 +23,7 @@ object FavouriteColourAppScala {
     // we disable the cache to demonstrate all the "steps" involved in the transformation - not recommended in prod
     config.put(StreamsConfig.CACHE_MAX_BYTES_BUFFERING_CONFIG, "0")
 
-    val builder: KStreamBuilder = new KStreamBuilder
+    val builder: StreamsBuilder = new StreamsBuilder
 
     // Step 1: We create the topic of users keys to colours
     val textLines: KStream[String, String] = builder.stream[String, String]("favourite-colour-input")
@@ -32,7 +34,9 @@ object FavouriteColourAppScala {
       // 2 - we select a key that will be the user id (lowercase for safety)
       .selectKey[String]((key: String, value: String) => value.split(",")(0).toLowerCase)
       // 3 - we get the colour from the value (lowercase for safety)
-      .mapValues[String]((value: String) => value.split(",")(1).toLowerCase)
+      .mapValues[String](new ValueMapper[String, String] {
+        override def apply(value: String): String =  { value.split(",")(1).toLowerCase }
+      })
       // 4 - we filter undesired colours (could be a data sanitization step)
       .filter((user: String, colour: String) => List("green", "blue", "red").contains(colour))
 
@@ -42,21 +46,29 @@ object FavouriteColourAppScala {
     // step 2 - we read that topic as a KTable so that updates are read correctly
     val usersAndColoursTable: KTable[String, String] = builder.table(intermediaryTopic)
 
+    val stringSerde: Serde[String] = Serdes.String
+    val longSerde: Serde[lang.Long] = Serdes.Long
+
     // step 3 - we count the occurences of colours
     val favouriteColours: KTable[String, lang.Long] = usersAndColoursTable
       // 5 - we group by colour within the KTable
-      .groupBy((user: String, colour: String) => new KeyValue[String, String](colour, colour))
-      .count("CountsByColours")
+      .groupBy(
+        (user: String, colour: String) => new KeyValue[String, String](colour, colour),
+        Serialized.`with`(stringSerde, stringSerde)
+      )
+      .count(Materialized.as[String, lang.Long, KeyValueStore[Bytes, Array[Byte]]]("CountsByColours")
+        .withKeySerde(stringSerde)
+        .withValueSerde(longSerde))
 
     // 6 - we output the results to a Kafka Topic - don't forget the serializers
-    favouriteColours.to(Serdes.String, Serdes.Long, "favourite-colour-output-scala")
+    favouriteColours.toStream.to("favourite-colour-output-scala", Produced.`with`(stringSerde, longSerde))
 
-    val streams: KafkaStreams = new KafkaStreams(builder, config)
+    val streams: KafkaStreams = new KafkaStreams(builder.build(), config)
     streams.cleanUp()
     streams.start()
 
     // print the topology
-    System.out.println(streams.toString)
+    streams.localThreadsMetadata().forEach(t => System.out.print(t.toString))
 
     // shutdown hook to correctly close the streams application
     Runtime.getRuntime.addShutdownHook(new Thread {
