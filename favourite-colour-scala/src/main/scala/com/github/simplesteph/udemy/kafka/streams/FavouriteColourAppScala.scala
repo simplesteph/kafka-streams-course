@@ -42,7 +42,7 @@ object FavouriteColourAppScala {
     // step 2 - we read that topic as a KTable so that updates are read correctly
     val usersAndColoursTable: KTable[String, String] = builder.table(intermediaryTopic)
 
-    // step 3 - we count the occurences of colours
+    // step 3 - we count the occurrences of colours
     val favouriteColours: KTable[String, lang.Long] = usersAndColoursTable
       // 5 - we group by colour within the KTable
       .groupBy((user: String, colour: String) => new KeyValue[String, String](colour, colour))

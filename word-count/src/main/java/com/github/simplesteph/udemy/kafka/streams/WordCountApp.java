@@ -35,7 +35,7 @@ public class WordCountApp {
                 .selectKey((key, word) -> word)
                 // 5 - group by key before aggregation
                 .groupByKey()
-                // 6 - count occurences
+                // 6 - count occurrences
                 .count("Counts");
 
         // 7 - to in order to write the results back to kafka

@@ -46,7 +46,7 @@ public class FavouriteColourApp {
         // step 2 - we read that topic as a KTable so that updates are read correctly
         KTable<String, String> usersAndColoursTable = builder.table("user-keys-and-colours");
 
-        // step 3 - we count the occurences of colours
+        // step 3 - we count the occurrences of colours
         KTable<String, Long> favouriteColours = usersAndColoursTable
                 // 5 - we group by colour within the KTable
                 .groupBy((user, colour) -> new KeyValue<>(colour, colour))
