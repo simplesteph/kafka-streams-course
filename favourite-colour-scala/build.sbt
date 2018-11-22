@@ -1,7 +1,11 @@
 name := "favourite-colour-scala"
 organization        := "com.github.simplesteph.udemy.kafka.streams"
-version             := "1.0-SNAPSHOT"
+version             := "2.0.1-SNAPSHOT"
 scalaVersion := "2.12.3"
+
+// needed to resolve weird dependency
+libraryDependencies += "javax.ws.rs" % "javax.ws.rs-api" % "2.1" artifacts(
+  Artifact("javax.ws.rs-api", "jar", "jar"))
 
 // https://mvnrepository.com/artifact/org.apache.kafka/kafka-streams
 libraryDependencies ++= Seq(
@@ -9,12 +13,6 @@ libraryDependencies ++= Seq(
   "org.slf4j" %  "slf4j-api" % "1.7.25",
   "org.slf4j" %  "slf4j-log4j12" % "1.7.25"
 )
-
-
-val workaround = {
-  sys.props += "packaging.type" -> "jar"
-  ()
-}
 
 // leverage java 8
 javacOptions ++= Seq("-source", "1.8", "-target", "1.8", "-Xlint")
