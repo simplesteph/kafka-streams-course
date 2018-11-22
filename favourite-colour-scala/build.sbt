@@ -11,6 +11,11 @@ libraryDependencies ++= Seq(
 )
 
 
+val workaround = {
+  sys.props += "packaging.type" -> "jar"
+  ()
+}
+
 // leverage java 8
 javacOptions ++= Seq("-source", "1.8", "-target", "1.8", "-Xlint")
 scalacOptions := Seq("-target:jvm-1.8")
