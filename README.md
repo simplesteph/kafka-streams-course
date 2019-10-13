@@ -2,7 +2,7 @@
 
 # Learning
 
-This is a companion repository for my [**Kafka Streams course on Udemy**](https://www.udemy.com/kafka-streams/?couponCode=GITHUB)
+This is a companion repository for my [**Kafka Streams course on Udemy**](https://links.datacumulus.com/kafka-streams-coupon)
 
 Happy learning!
 
